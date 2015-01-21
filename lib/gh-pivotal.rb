@@ -26,7 +26,7 @@ helpers do
     issues.flatten.map do |i|
       t = 'feature'
       i.labels.each do |l|
-        match = l.name.scan(/(bug|chore)/i)
+        match = l.name.scan(/(bug|chore|release)/i)
         t = match[0][0].downcase unless match[0].nil?
       end
       i.story_type = t
