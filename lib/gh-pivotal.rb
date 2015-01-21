@@ -23,31 +23,39 @@ helpers do
       end
       page += 1
     end until issues[-1].length == 0
-    issues.flatten
+    issues.flatten.map do |i|
+      t = 'feature'
+      i.labels.each do |l|
+        match = l.name.scan(/(bug|chore)/i)
+        t = match[0][0].downcase unless match[0].nil?
+      end
+      i.story_type = t
+      i
+    end
   end
-  
+
   def close_issue(issue_xml)
     issue_uri = issue_xml.xpath('//other_id').text.split("/issues/")
-    
+
     return if issue_uri.nil?
-    
+
     issue_base_path = issue_uri[0]
     issue_number = issue_uri[1]
     $ghcli.close_issue(issue_base_path, issue_number)
   end
-  
+
   def protected!
     unless authorized?
       response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
       throw(:halt, [401, "Not authorized\n"])
     end
   end
-  
+
   def authorized?
     @auth ||=  Rack::Auth::Basic::Request.new(request.env)
     @auth.provided? && @auth.basic? && @auth.credentials == [settings.basic_user, settings.basic_password]
   end
-  
+
 end
 
 # Sinatra Routes
